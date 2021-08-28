@@ -26,10 +26,11 @@ async function fetchStocks() {
     
     date_range=[];
     fetchCompany();
-    date=document.getElementById("date").value|| 0;
+    date=document.getElementById("date").value || 0;
     time=document.getElementById("time").value || 0;
-    await isStockSymbolExist(syb,date,time);
-    date_range.push(stock_list);
+    const arr=await isStockSymbolExist(syb,date,time);
+    console.log(arr);
+    date_range.push(arr);
     console.log("date_range",date_range);
     
   }
@@ -126,7 +127,7 @@ function chart(){
         }
 
 
-  const isStockSymbolExist = async (syb,date,range) => {
+  async function isStockSymbolExist(syb,date,range){
     try {
       date=new Date(date);     
       var gap;
@@ -149,6 +150,7 @@ function chart(){
           
           
       console.log("stock list",stock_list);
+      return stock_list;
       
     } catch (err) {
       throw Error("lol");
