@@ -4,7 +4,7 @@ const mongoose =require('mongoose');
 const cors =require('cors');
 const getstocksdata = require('./controllers/stockdata');
 const getstocksymbol = require('./controllers/stocksymbol');
-
+const path = require('path');
 const app = express();
 const dotenv = require("dotenv");
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -27,8 +27,9 @@ module.exports = function(app) {
 };
 
 app.get('/stock',getstocksdata);
-app.get('/', function(req, res){
-  res.redirect('/stock');
+app.get('/',function(req,res){
+  res.sendFile(path.join(__dirname+'/index.html'));
+  //__dirname : It will resolve to your project folder.
 });
 
 
