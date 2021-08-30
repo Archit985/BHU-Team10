@@ -1,11 +1,11 @@
 
-window.addEventListener('load', fetchStocks);
-var  stocks;
+
 var stock_list=[];
 var historyList=[];
 var StockData=[];
 var chartdata=[];
 var dps = [];
+var res1=[];
 var date_range=[];
 var company_name="";
 var company_description="";
@@ -14,31 +14,51 @@ var syb="";
 var date="";
 var time="";
 //const fetch = require('node-fetch');
-async function fetchStocks() {
+/*async function fetchStocks(StockData) {
     const response = await fetch('http://localhost:3000/stock');
     stocks = await response.json();
-    StockData.push(stocks);
+    StockData=[];
+    for(item in stocks){
+      StockData.push(stocks[item]);
+   }
+    console.log(typeof(stocks));
+
+    console.log(StockData.length);
     // waits until the request completes...
+    
 
     
   }
+  */
+
+  
   async function showDate() {
+    const response = await fetch('http://localhost:3000/stock');
+    stocks = await response.json();
+    StockData=[];
+    for(item in stocks){
+      StockData.push(stocks[item]);
+   }
     
-    date_range=[];
-    fetchCompany();
-    date=document.getElementById("date").value || 0;
-    time=document.getElementById("time").value || 0;
-    const arr=await isStockSymbolExist(syb,date,time);
-    console.log(arr);
-    date_range.push(arr);
-    console.log("date_range",date_range);
+    
+    await fetchCompany();
+    date=document.getElementById("date").value || "";
+    time=document.getElementById("time").value || "";
+    chartype=document.getElementById("chart").value || "";
+    await isStockSymbolExist(syb,date,time,StockData);
     
   }
 
 async function fetchCompany() {
+  const response = await fetch('http://localhost:3000/stock');
+    stocks = await response.json();
+    StockData=[];
+    for(item in stocks){
+      StockData.push(stocks[item]);
+   }
   searchFunction();
-  const response = await fetch('https://financialmodelingprep.com/api/v3/profile/'+syb+'?apikey=5985de078ee30ed8d40ba14b5e3555b7');
-  const stock = await response.json();
+  const res = await fetch('https://financialmodelingprep.com/api/v3/profile/'+syb+'?apikey=5985de078ee30ed8d40ba14b5e3555b7');
+  const stock = await res.json();
   // waits until the request completes...
   
   company_description=stock.length>0?stock[0].description:'Company Not exist';
@@ -52,17 +72,30 @@ async function fetchCompany() {
   h.innerHTML = company_name;
   p.innerHTML = company_description;
   
+  for(var i=0;i<StockData.length;i++){
+    var temp= StockData[i];
+        if(temp.symbol==syb){
+          res1.push(temp);
+        }
+  };
+  console.log(res1);
+  if(chartype=="ohlc"){
+    chart1(res1);
+  }
+  else {
+    chart2(res1);
+  }
+  
 
 }
 
 
 
-function searchFunction() {
+async function searchFunction() {
     const val = document.getElementById("search").value;
     syb=val;
     console.log(val);
     historyList.push(val);
-    document.getElementById("search").value="";
     ul = document.getElementById("history_list");
 
     document.getElementById("search_box").appendChild(ul);
@@ -76,13 +109,14 @@ function searchFunction() {
   }
 
   
-function chart(){
+function chart1(data_range){
+  console.log("chart",chartype);
   dps = [];
         var chart = new CanvasJS.Chart("chartContainer", {
             animationEnabled: true,
             exportEnabled: true,
             title: {
-                text: company_name + time +'('+date+')'
+                text: time+ "Stock Price upto " + date
             },
             axisX: {
                 valueFormatString: "DD MMM"
@@ -92,7 +126,7 @@ function chart(){
                 prefix: "$"
             },
             data: [{
-                type: chartype,
+                type: "ohlc",                
                 name: company_name +" Stock Price",
                 color: "#DD7E86",
                 showInLegend: true,
@@ -102,33 +136,83 @@ function chart(){
             }]
         });
         
-        $.getJSON("https://canvasjs.com/data/gallery/javascript/intel-stock-price.json", parseData);
-        
+        parseData(data_range)
         function parseData(date_range) {
-          var ylabel=[];
             for (var i = 0; i < date_range.length; i++) {
-              ylabel[i]=[];
+              var temp=[]
                 {
-                ylable[i]=[];
-                ylabel[i][0]=date_range[i].open;
-                ylabel[i][1]=date_range[i].high;
-                ylabel[i][2]=date_range[i].low;
-                ylabel[i][3]=date_range[i].close;
+                temp.push(date_range[i].open);
+                temp.push(date_range[i].high);
+                temp.push(date_range[i].low);
+                temp.push(date_range[i].close);
+                
                 }
               
-                dps.push({x:date_range[i].date,y:ylabel[i]});
-              
+                dps.push({x:new Date(date_range[i].date),y:temp});
+                //console.log(temp);
               
               
             }
+            console.log(dps);
             chart.render();
         }
         
         }
 
 
-  async function isStockSymbolExist(syb,date,range){
-    try {
+        function chart2(data_range){
+          console.log("chart",chartype);
+          dps = [];
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    animationEnabled: true,
+                    exportEnabled: true,
+                    title: {
+                        text: time+ "Stock Price upto " + date
+                    },
+                    axisX: {
+                        valueFormatString: "DD MMM"
+                    },
+                    axisY: {
+                        title: "Price",
+                        prefix: "$"
+                    },
+                    data: [{
+                        type: "candlestick",                
+                        name: company_name +" Stock Price",
+                        color: "#DD7E86",
+                        showInLegend: true,
+                        yValueFormatString: "$##0.00",
+                        xValueType: "date",
+                        dataPoints: dps
+                    }]
+                });
+                
+                parseData(data_range)
+                function parseData(date_range) {
+                    for (var i = 0; i < date_range.length; i++) {
+                      var temp=[]
+                        {
+                        temp.push(date_range[i].open);
+                        temp.push(date_range[i].high);
+                        temp.push(date_range[i].low);
+                        temp.push(date_range[i].close);
+                        
+                        }
+                      
+                        dps.push({x:new Date(date_range[i].date),y:temp});
+                        //console.log(temp);
+                      
+                      
+                    }
+                    console.log(dps);
+                    chart.render();
+                }
+                
+                }
+                
+
+  async function isStockSymbolExist(syb,date,range,StockData){
+    
       date=new Date(date);     
       var gap;
       if(range==="Weekly") gap=7;
@@ -141,21 +225,37 @@ function chart(){
       // console.log("lol2")
 
       stock_list=[];
-      Object.entries(stocks).forEach(([key, obj]) => {
-        var temp= new Date(obj.date);
-            if(obj.symbol==syb && temp>=date_final && temp<=date){
-              stock_list.push(obj);
+      console.log(StockData.length);
+      console.log(syb);
+      for(var i=0;i<StockData.length;i++){
+        var temp= new Date(StockData[i].date);
+            if(StockData[i].symbol==syb && temp.getTime()>date_final.getTime() && temp.getTime()<=date.getTime()){
+              stock_list.push(StockData[i]);
             }
-      });
+      };
           
-          
+        
       console.log("stock list",stock_list);
-      return stock_list;
-      
-    } catch (err) {
-      throw Error("lol");
-    }
+      if(chartype=="ohlc"){
+        chart1(stock_list);
+      }
+      else if(chartype=="candlestick"){
+        chart2(stock_list);
+      }
+      else if(chartype=="colouredbar"){
+        chart3(stock_list);
+      }
+      else if(chartype=="vertexline"){
+        chart4(stock_list);
+      }
+      else{
+        
+          chart5(stock_list);
+        
+      }
+  
+   
   };
-  var date=new Date("2021-01-04T00:00:00.000Z")
+  //var date=new Date("2021-01-04T00:00:00.000Z")
   //fetchStocks()
   //isStockSymbolExist("AAPL",date,"weekly");

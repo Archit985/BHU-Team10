@@ -15,7 +15,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 dotenv.config();
 app.use(cors());
 
-
+app.use(express.static(__dirname ));
+console.log(__dirname);
 module.exports = function(app) {
   app.use(
     '/stock',
