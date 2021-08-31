@@ -33,12 +33,6 @@ var time="";
 
   
   async function showDate() {
-    const response = await fetch('http://localhost:3000/stock');
-    stocks = await response.json();
-    StockData=[];
-    for(item in stocks){
-      StockData.push(stocks[item]);
-   }
     
     
     await fetchCompany();
@@ -82,8 +76,11 @@ async function fetchCompany() {
   if(chartype=="ohlc"){
     chart1(res1);
   }
-  else {
+  else if(chartype=="candlestick"){
     chart2(res1);
+  }
+  else{
+    chart3(res1);
   }
   
 
@@ -209,6 +206,57 @@ function chart1(data_range){
                 }
                 
                 }
+     
+                
+                function chart3(data_range){
+                  console.log("chart",chartype);
+                  dps = [];
+                        var chart = new CanvasJS.Chart("chartContainer", {
+                            animationEnabled: true,
+                            exportEnabled: true,
+                            title: {
+                                text: time+ "Stock Price upto " + date
+                            },
+                            axisX: {
+                                valueFormatString: "DD MMM"
+                            },
+                            axisY: {
+                                title: "Price",
+                                prefix: "$"
+                            },
+                            data: [{
+                                type: chartype,                
+                                name: company_name +" Stock Price",
+                                color: "#DD7E86",
+                                showInLegend: true,
+                                yValueFormatString: "$##0.00",
+                                xValueType: "date",
+                                dataPoints: dps
+                            }]
+                        });
+                        
+                        parseData(data_range)
+                        function parseData(date_range) {
+                            for (var i = 0; i < date_range.length; i++) {
+                              var temp=[]
+                                {
+                                temp.push(date_range[i].open);
+                                temp.push(date_range[i].high);
+                                temp.push(date_range[i].low);
+                                temp.push(date_range[i].close);
+                                
+                                }
+                              
+                                dps.push({x:new Date(date_range[i].date),y:temp});
+                                //console.log(temp);
+                              
+                              
+                            }
+                            console.log(dps);
+                            chart.render();
+                        }
+                        
+                        }
                 
 
   async function isStockSymbolExist(syb,date,range,StockData){
@@ -242,15 +290,10 @@ function chart1(data_range){
       else if(chartype=="candlestick"){
         chart2(stock_list);
       }
-      else if(chartype=="colouredbar"){
-        chart3(stock_list);
-      }
-      else if(chartype=="vertexline"){
-        chart4(stock_list);
-      }
+      
       else{
         
-          chart5(stock_list);
+          chart3(stock_list);
         
       }
   
